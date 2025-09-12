@@ -1,0 +1,64 @@
+<h1>Reviews</h1>
+
+<!-- Loading indicator -->
+@if (loading | async) {
+  <div>Loading...</div>
+}
+
+<form [formGroup]="form" (ngSubmit)="editingId()? update() : submit()" class="reviews-form">
+  <div class="form-field">
+    <label>Show ID</label>
+    <input type="number" formControlName="showId" placeholder="Enter show ID (from URL)">
+    @if (form.get('showId')?.touched && form.get('showId')?.invalid) {
+      <div class="error">Show ID is required</div>
+    }
+  </div>
+  <div class="form-field">
+    <label>Rating</label>
+    <select formControlName="rating">
+      @for (r of [1,2,3,4,5]; track r) {
+        <option [value]="r">{{r}}</option>
+      }
+    </select>
+  </div>
+  <div class="form-field">
+    <label>Comments</label>
+    <textarea rows="3" formControlName="comment" placeholder="Your thoughts..."></textarea>
+    @if (form.get('comment')?.touched && form.get('comment')?.invalid) {
+      <div class="error">Comment is required (min 5 chars)</div>
+    }
+  </div>
+  <div class="form-actions">
+    <button type="submit" [disabled]="form.invalid || (loading | async)">{{editingId()? 'Update' : 'Add'}} Review</button>
+    @if (editingId()) {
+      <button type="button" (click)="cancel()">Cancel</button>
+    }
+    <button (click)="clearAllReviews()" [disabled]="(reviews | async)?.length === 0" class="clear-btn">Clear All</button>
+  </div>
+</form>
+
+<hr>
+<div>
+  <h2>Submitted Reviews ({{(reviews | async)?.length}})</h2>
+  @if (!(reviews | async)?.length) {
+    <div class="muted">No reviews yet. Add one above.</div>
+  }
+  <div class="grid">
+    @for (review of (reviews | async); track review.id) {
+      <div class="card">
+        <div class="content"> 
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>Show #{{review.showId}}</strong>
+            <span class="badge">⭐ {{review.rating}}</span>
+          </div>
+          <p>{{review.comment}}</p>
+          <div class="muted">{{review.createdAt | date:'medium'}}</div>
+          <div style="display:flex; gap:8px;">
+            <button (click)="edit(review)" [disabled]="loading | async">Edit</button>
+            <button (click)="remove(review.id)" [disabled]="loading | async" style="background:#b00020">Delete</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
