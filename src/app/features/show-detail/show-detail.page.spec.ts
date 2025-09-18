@@ -5,7 +5,6 @@ import { provideRouter } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { Location } from '@angular/common';
 
 describe('ShowDetailPageComponent', () => {
   let component: ShowDetailPageComponent;
@@ -37,10 +36,6 @@ describe('ShowDetailPageComponent', () => {
             select: () => of([]), 
             dispatch: () => {} 
           }
-        },
-        {
-          provide: Location,
-          useValue: { back: () => {} }
         }
       ]
     }).compileComponents();
@@ -114,7 +109,6 @@ describe('ShowDetailPageComponent', () => {
     expect(component).toBeTruthy();
     expect(TestBed.inject(Store)).toBeTruthy();
     expect(TestBed.inject(ActivatedRoute)).toBeTruthy();
-    expect(TestBed.inject(Location)).toBeTruthy();
   });
 
 });
