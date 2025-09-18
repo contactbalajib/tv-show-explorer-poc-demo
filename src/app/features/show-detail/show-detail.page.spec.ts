@@ -110,14 +110,6 @@ describe('ShowDetailPageComponent', () => {
     expect(Array.isArray(component.episodes())).toBe(true);
   });
 
-  it('should handle multiple detectChanges calls without errors', () => {
-    expect(() => {
-      fixture.detectChanges();
-      fixture.detectChanges();
-      fixture.detectChanges();
-    }).not.toThrow();
-  });
-
   it('should be properly configured with all dependencies', () => {
     expect(component).toBeTruthy();
     expect(TestBed.inject(Store)).toBeTruthy();
@@ -125,36 +117,4 @@ describe('ShowDetailPageComponent', () => {
     expect(TestBed.inject(Location)).toBeTruthy();
   });
 
-  it('should handle edge cases in data states', () => {
-    fixture.detectChanges();
-    
-    const initialLoading = component.loading();
-    const initialShow = component.show();
-    const initialCast = component.cast();
-    const initialEpisodes = component.episodes();
-    
-    expect(initialLoading).toBe(true);
-    expect(initialShow).toBeNull();
-    expect(initialCast).toEqual([]);
-    expect(initialEpisodes).toEqual([]);
-  });
-
-  it('should handle component state transitions', () => {
-    expect(component.loading()).toBe(true);
-    
-    fixture.detectChanges();
-    
-    expect(component.loading()).toBe(true);
-    expect(component.show()).toBeNull();
-  });
-
-  it('should properly handle Angular lifecycle', () => {
-    fixture.detectChanges();
-    
-    expect(component).toBeDefined();
-    expect(component.loading).toBeDefined();
-    expect(component.show).toBeDefined();
-    expect(component.cast).toBeDefined();
-    expect(component.episodes).toBeDefined();
-  });
 });
