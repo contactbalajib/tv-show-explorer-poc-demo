@@ -4,7 +4,6 @@ import { environment } from '../../../environments/environment';
 
 export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
     console.log('environment:', environment);
-    console.log('Request:', req);
   // Only log in development
   if (environment.production) {
     return next(req);
