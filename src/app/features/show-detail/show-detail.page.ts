@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal, computed } from "@angular/core";
+import { Component, effect, inject, signal, computed, DestroyRef } from "@angular/core";
 import { CommonModule, NgOptimizedImage, DOCUMENT } from "@angular/common";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { TvMazeApiService } from "../../core/services/tvmaze-api.service";
@@ -9,6 +9,7 @@ import { Episode } from "../../core/models/episode.model";
 import { LoaderComponent } from "../../shared/components/loader/loader.component";
 import { selectReviews } from "../../state/reviews/selectors";
 import { delay, forkJoin, of, switchMap } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 @Component({
   selector: "app-show-detail-page",
@@ -22,6 +23,7 @@ export class ShowDetailPageComponent {
   private api = inject(TvMazeApiService);
   private doc = inject(DOCUMENT);
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   id = signal<number>(0);
   loading = signal(true);
@@ -57,61 +59,44 @@ export class ShowDetailPageComponent {
         this.id.set(id);
         this.loading.set(true);
 
-        // this.api.getShow(id).subscribe(s => this.show.set(s));
-        // this.api.getCast(id).subscribe(c => this.cast.set(c));
-        // this.api.getEpisodes(id).subscribe(e => {
-        //   this.episodes.set(e);
-        //   this.loading.set(false);
-        // });
-
-        //RxJS forkJoin to run all API calls in parallel and set loading to false only after all have completed.
-        // forkJoin({
-        //   showTmp: this.api.getShow(id),
-        //   castTmp: this.api.getCast(id),
-        //   episodesTmp: this.api.getEpisodes(id),
-        // }).subscribe(({ showTmp, castTmp, episodesTmp }) => {
-        //   this.show.set(showTmp);
-        //   this.cast.set(castTmp);
-        //   this.episodes.set(episodesTmp);
-        //   this.loading.set(false);
-        // });
-
-
         // Wait 300ms before starting API calls
         of(null).pipe(
           //Added delay (in milliseconds) intentionally to showcase the loading state
           delay(300),  
           //The RxJS switchMap operator is used to switch from one observable stream to another. When a new value arrives, switchMap cancels the previous inner observable and subscribes to the new one. This is useful for scenarios like API calls in response to user input, ensuring only the latest request is processed and previous ones are ignored.
+          //RxJS forkJoin to run all API calls in parallel and set loading to false only after all have completed.
           switchMap(() =>
             forkJoin({
               showTmp: this.api.getShow(id),
               castTmp: this.api.getCast(id),
               episodesTmp: this.api.getEpisodes(id),
             })
-          )
-        ).subscribe(({ showTmp, castTmp, episodesTmp }) => {
+          ),
+
+          //The takeUntilDestroyed(this.destroyRef) operator ensures that the subscription is automatically cancelled when the component is destroyed, preventing any HTTP requests from trying to complete after the component's injector has been destroyed.
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
 
           //console.log("showTmp:", showTmp);
           //console.log("castTmp:", castTmp);
           //console.log("episodesTmp:", episodesTmp);
-          this.show.set(showTmp);
-          this.cast.set(castTmp);
-          this.episodes.set(episodesTmp);
-          this.loading.set(false);
-
-          // next: ({ showTmp, castTmp, episodesTmp }) => {
-          //   this.show.set(showTmp);
-          //   this.cast.set(castTmp);
-          //   this.episodes.set(episodesTmp);
-          //   this.loading.set(false);
-          // },
-          // error: (err) => {
-          //   this.loading.set(false);
-          //   this.show.set(null);
-          //   this.cast.set([]);
-          //   this.episodes.set([]);
-          //   console.error('Failed to load show/cast/episode details:', err);
-          // }
+          
+          next: ({ showTmp, castTmp, episodesTmp }) => {
+            //console.log("showTmp:", showTmp);
+            //console.log("castTmp:", castTmp);
+            //console.log("episodesTmp:", episodesTmp);
+            this.show.set(showTmp);
+            this.cast.set(castTmp);
+            this.episodes.set(episodesTmp);
+            this.loading.set(false);
+          },
+          error: (err) => {
+            this.loading.set(false);
+            this.show.set(null);
+            this.cast.set([]);
+            this.episodes.set([]);
+            console.error('Failed to load show/cast/episode details:', err);
+          }
         });
       },
       { allowSignalWrites: true }
@@ -144,16 +129,6 @@ export class ShowDetailPageComponent {
     //Converts the map to an array of [season, episodes[]] pairs and sorts them by season number.
     return Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
   }
-
-  // NEW: safe open method
-  // openTrailer(e: Episode) {
-  //   const q = `${this.show()?.name ?? ""} trailer ${e.name}`.trim();
-  //   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(
-  //     q
-  //   )}`;
-  //   // Use document.defaultView instead of directly referencing window (SSR-friendly)
-  //   this.doc.defaultView?.open(url, "_blank", "noopener");
-  // }
 
   openTrailer(e: Episode) {
     const showName = this.show()?.name;
