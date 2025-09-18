@@ -6,7 +6,9 @@ describe('TvMazeApiService', () => {
   let service: TvMazeApiService;
   let httpMock: HttpTestingController;
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    TestBed.configureTestingModule({ 
+      imports: [HttpClientTestingModule]
+    });
     service = TestBed.inject(TvMazeApiService);
     httpMock = TestBed.inject(HttpTestingController);
   });
