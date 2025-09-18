@@ -98,6 +98,12 @@ describe('ReviewsPageComponent', () => {
     comp.form.get('rating')!.setValue(5);
     comp.form.get('comment')!.setValue('Great show!');
     comp.submit();
+
+    //firstValueFrom is an RxJS utility function that converts an Observable into a Promise by taking the first emitted value.
+    //Subscribes to the Observable
+    //Waits for the first emission
+    //Resolves the Promise with that value
+    //Automatically unsubscribes
     const reviews = await firstValueFrom(comp.reviews);
     const review = reviews[0];
     comp.edit(review);
