@@ -6,11 +6,12 @@ import { routes } from './app/app.routes';
 import { provideStore } from '@ngrx/store';
 import { reviewsReducer } from './app/state/reviews/reducer';
 import { loggingInterceptor } from './app/core/interceptors/logging.interceptor';
+import { errorInterceptor } from './app/core/interceptors/error.interceptor';
 
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withInterceptors([loggingInterceptor])),
+    provideHttpClient(withInterceptors([loggingInterceptor, errorInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
     provideStore({
       reviews: reviewsReducer,

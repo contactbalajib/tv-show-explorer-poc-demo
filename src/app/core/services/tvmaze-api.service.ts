@@ -9,7 +9,7 @@ import { CastItem } from "../models/cast.model";
 @Injectable({ providedIn: "root" })
 export class TvMazeApiService {
   private http = inject(HttpClient);
-  private base = environment.apiBase;
+  private base = environment.apiBase.replace(/\/+$/, "");
 
   searchShows(q: string): Observable<SearchResult[]> {
     return this.http.get<SearchResult[]>(
